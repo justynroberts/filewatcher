@@ -10,8 +10,8 @@
 It centers around the pip module watcher ([watcher](https://pypi.org/project/watcher/)) and is configurable to run an existing webhook.
 
 Webhooks are preferable as they will obey queuing and can easily be modified. The file/path is passed as an option should you need to modify it. 
-The main configuration ( is based on the json file format:
-Example:
+The main configuration (`config.json`) is based on the json file format:  
+Example:  
 
     "FileWatcher": {
     "directories": ["/Users/jroberts/work/filewatcher/test", "directory2"],
@@ -41,6 +41,7 @@ Self explanatory - one or more of the following types:
 Extension to monitor. If ommited `*.*` is assumed
 
  `post_url`  
+ 
 Full webhook location eg 
 
 > https://myhost.domain.com/api/webhook
