@@ -1,0 +1,10 @@
+{
+    "FileWatcher": {
+        "directories": ["/Users/jroberts/work/filewatcher/test", "directory2"],
+        "event_types": ["created", "modified"],
+        "file_extension_pattern": "*.csv",
+
+        "post_url": "https://YOURWEBHOOKURL",
+        "authentication_header": "YOUR-HEADER"
+    }
+}
