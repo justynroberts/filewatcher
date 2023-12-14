@@ -68,6 +68,10 @@ The can be installed something like [here](https://medium.com/codex/setup-a-pyth
 
 Or could work with windows using the nssm ( [https://nssm.cc/](https://nssm.cc/))
 
+## Automation Webhook
+This will pass filepath as a payload.
+add this as an advanced webhook option as `$.path` - this will be passed as an option across to use within your automation jobs.
+
 ## 📏 Scale:  
 
 Estimated a few hundred directories, but could be split over different executables/runners to scale to more.
