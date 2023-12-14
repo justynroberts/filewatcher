@@ -79,6 +79,7 @@ Estimated a few hundred directories, but could be split over different executabl
 
 **📝 Notes:**  
 Presently 1 file = 1 webhook invocation, but could be modified to batch files.
+Some nice features such as POST being non blocking and Log integration. 
 
 **⚠️ Issues?**  
 Please post to the repo, not the author.
