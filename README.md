@@ -6,8 +6,8 @@
 > Watch a directory, and trigger Automation. Its not complex :) 
 
 
-👀 Watcher gives an example of how to run automation jobs as the result of a file activity.
-It centers around the pip module watcher ( [watcher](https://pypi.org/project/watcher/)) and is  configurable to run an existing webhook.
+👀 Watcher gives an example of how to run automation jobs as the result of a file activity.  
+It centers around the pip module watcher ([watcher](https://pypi.org/project/watcher/)) and is configurable to run an existing webhook.
 
 Webhooks are preferable as they will obey queuing and can easily be modified. The file/path is passed as an option should you need to modify it. 
 The main configuration ( is based on the json file format:
@@ -20,7 +20,8 @@ Example:
     "post_url": "https://YOURSERVERWEBHOOKURL",
     "authentication_header": "YOURHEADER"
     }
-Sections
+
+File Sections:-
 
     directories 
 Full directory path to be monitored (sub directories will automatically be monitored)
@@ -39,13 +40,12 @@ Self explanatory - one or more of the following types:
 
 Extension to monitor. If ommited `*.*` is assumed
 
- `post_url`
-    
+ `post_url`  
 Full webhook location eg 
 
 > https://myhost.domain.com/api/webhook
 
- `authentication_header`
+ `authentication_header`  
  A good security practice is to use the additional authentication header for each webhook. This is generated at runtime when the webhook is initially configured
 
 **🔧 Running the watcher.**
@@ -60,24 +60,27 @@ A requirements.txt is also supplied for purists.
    
 >  pip install -r requirements.txt
 
-Running
+## Running
+
+`python3 main.py`  
+
 The can be installed something like [here](https://medium.com/codex/setup-a-python-script-as-a-service-through-systemctl-systemd-f0cc55a42267)
 
 Or could work with windows using the nssm ( [https://nssm.cc/](https://nssm.cc/))
 
-## 📏 Scale:
+## 📏 Scale:  
 
-Estimated a few hundred directories, but could be split over  different executables/runners to scale to more.
+Estimated a few hundred directories, but could be split over different executables/runners to scale to more.
 
-**📝 Notes:**
+**📝 Notes:**  
 Presently 1 file = 1 webhook invocation, but could be modified to batch files.
 
-**⚠️ Issues?**
+**⚠️ Issues?**  
 Please post to the repo, not the author.
 
 **📜 License**  
 
-MIT License
+MIT License  
 
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the
