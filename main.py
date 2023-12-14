@@ -1,30 +1,11 @@
-"""MIT License
-
-(c) 2023/2024 Justyn Roberts
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE."""
-
 import time
 import os
 import logging
 import json
 import fnmatch
 import requests
+import threading
+import uuid
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -62,23 +43,30 @@ class Handler(FileSystemEventHandler):
             return
 
         if event.event_type in self.event_types:
-            try:
-                file_path = os.path.abspath(event.src_path)
-                payload = {"path": file_path}
-                payload_json = json.dumps(payload)
-                headers = {
-                    'Authorization': self.authentication_header,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-                response = requests.post(self.post_url, headers=headers, data=payload_json)
+            event_id = str(uuid.uuid4())  # Generate a unique ID for the event
+            logging.info(f"Detected event {event_id} for file: {event.src_path}")
+            thread = threading.Thread(target=self.post_event, args=(event, event_id))
+            thread.start()
 
-                if response.status_code != 200:
-                    logging.error(f"Error in HTTP POST request: {response.status_code} - {response.text}")
-                else:
-                    logging.info(f"Posted file info successfully: {file_path}")
-            except Exception as e:
-                logging.error(f"Error occurred while sending POST request: {e}")
+    def post_event(self, event, event_id):
+        try:
+            file_path = os.path.abspath(event.src_path)
+            payload = {"path": file_path, "event_id": event_id}
+            payload_json = json.dumps(payload)
+            headers = {
+                'Authorization': self.authentication_header,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            logging.info(f"Sending HTTP POST request for event {event_id}: {file_path}")
+            response = requests.post(self.post_url, headers=headers, data=payload_json)
+
+            if response.status_code != 200:
+                logging.error(f"Error in HTTP POST request for event {event_id}: {response.status_code} - {response.text}")
+            else:
+                logging.info(f"Successfully posted file info for event {event_id}: {file_path}")
+        except Exception as e:
+            logging.error(f"Error occurred while sending POST request for event {event_id}: {e}")
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -93,16 +81,18 @@ if __name__ == '__main__':
         logging.error("Error decoding 'config.json'. Please check its format.")
         exit(1)
 
+    logging.info("🟢 File Watcher Config 🟢")
     watch_directories = config['FileWatcher']['directories']
-    print(f"Directories to Observe: {watch_directories}")
+    logging.info(f"🟢 Directories to Observe: {watch_directories}")
     event_types = config['FileWatcher']['event_types']
-    print(f"Event Types: {watch_directories}")
-    post_url = config['FileWatcher']['post_url']
-    print (post_url)
-    authentication_header = config['FileWatcher']['authentication_header']
-    print (authentication_header)
     file_extension_pattern = config['FileWatcher'].get('file_extension_pattern', '*.*')  # Default to all files if not specified
-    print(file_extension_pattern)
+    logging.info(f"🟢 File Extension Pattern: {file_extension_pattern}")
+    post_url = config['FileWatcher']['post_url']
+    logging.info(f"🟢 Runbook Automation URL: {post_url}")
+    authentication_header = config['FileWatcher']['authentication_header']
+    logging.info(f"🟢 Authentication Header: REDACTED (see config.json)")
+
     event_handler = Handler(event_types, post_url, authentication_header, file_extension_pattern)
     w = Watcher(watch_directories, event_handler)
     w.run()
+
