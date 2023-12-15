@@ -23,11 +23,11 @@ Example:
 
 File Sections:-
 
-    directories 
+`directories` 
 Full directory path to be monitored (sub directories will automatically be monitored)
 
 
-   `event_types`
+`event_types`
 Self explanatory - one or more of the following types:  
 
  - created 	
@@ -35,19 +35,18 @@ Self explanatory - one or more of the following types:
  - deleted 	
  - moved.
 
-
 `file_extension_pattern`
 
 Extension to monitor. If ommited `*.*` is assumed
 
- `post_url`  
+`post_url`  
  
 Full webhook location eg 
 
 > https://myhost.domain.com/api/webhook
 
- `authentication_header`  
- A good security practice is to use the additional authentication header for each webhook. This is generated at runtime when the webhook is initially configured
+`authentication_header`  
+A good security practice is to use the additional authentication header for each webhook. This is generated at runtime when the webhook is initially configured
 
 **🔧 Running the watcher.**
 
@@ -78,9 +77,11 @@ add this as an advanced webhook option as `$.path` - this will be passed as an o
 Estimated a few hundred directories, but could be split over different executables/runners to scale to more.
 
 **📝 Notes:**  
-Presently 1 file = 1 webhook invocation, but could be modified to batch files.
-Some nice features such as POST being non blocking and Log integration. 
-
+ - Presently 1 file = 1 webhook invocation, but could be modified to batch files.
+ - Some nice features such as POST being non blocking and Log integration. 
+ - Consider both the parallelism and the queuing capability of the job for this.
+ - If service stops, files could be missed, and wouldnt be picked up on restart
+   
 **⚠️ Issues?**  
 Please post to the repo, not the author.
 
