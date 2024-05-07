@@ -1,6 +1,9 @@
 import time
 import os
 import logging
+import time
+import os
+import logging
 import json
 import fnmatch
 import requests
@@ -37,14 +40,22 @@ class Handler(FileSystemEventHandler):
         self.post_url = post_url
         self.authentication_header = authentication_header
         self.file_extension_pattern = file_extension_pattern
+        self.last_event_time = {}
+        self.debounce_seconds = 1.0  # Adjust as needed
 
     def on_any_event(self, event):
         if event.is_directory or not fnmatch.fnmatch(event.src_path, self.file_extension_pattern):
             return
 
+        current_time = time.time()
+        last_time = self.last_event_time.get(event.src_path, 0)
+        if current_time - last_time < self.debounce_seconds:
+            return  # Skip this event because it's too soon since the last one
+
         if event.event_type in self.event_types:
-            event_id = str(uuid.uuid4())  # Generate a unique ID for the event
-            logging.info(f"Detected event {event_id} for file: {event.src_path}")
+            self.last_event_time[event.src_path] = current_time
+            event_id = str(uuid.uuid4())
+            logging.info(f"Detected event {event_id} ({event.event_type}) for file: {event.src_path}")
             thread = threading.Thread(target=self.post_event, args=(event, event_id))
             thread.start()
 
@@ -95,4 +106,5 @@ if __name__ == '__main__':
     event_handler = Handler(event_types, post_url, authentication_header, file_extension_pattern)
     w = Watcher(watch_directories, event_handler)
     w.run()
+
 
