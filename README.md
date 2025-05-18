@@ -113,7 +113,49 @@ This will:
 2. Create zip archives in the `dist/release` directory
 3. Include README.md, config.json, and LICENSE in each archive
 
-The generated archives can be manually uploaded to GitHub releases.
+#### Uploading to GitHub Releases
+
+You can manually upload the generated archives to GitHub releases through the web interface, or automate the process using the GitHub CLI:
+
+1. Set your GitHub token as an environment variable:
+
+```bash
+export GITHUB_TOKEN=your_personal_access_token
+```
+
+2. Create a new release using GitHub CLI:
+
+```bash
+gh release create v1.0.0 --title "Version 1.0.0" --notes "Release notes here"
+```
+
+3. Upload the release archives:
+
+```bash
+for archive in dist/release/*.zip; do
+  gh release upload v1.0.0 "$archive"
+done
+```
+
+You can also use the token in CI/CD pipelines by setting it as a secret environment variable:
+
+```yaml
+# Example GitHub Actions workflow
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build and Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          make release
+          gh release create v$VERSION --title "Version $VERSION" --notes "Release notes"
+          for archive in dist/release/*.zip; do
+            gh release upload v$VERSION "$archive"
+          done
+```
 
 ### Python Version
 
@@ -158,6 +200,38 @@ FileWatcher uses a JSON configuration file (`config.json` by default) with the f
 | `file_extension_pattern` | File pattern to match (e.g., `*.csv`, `*.log`) | No | `*.*` |
 | `post_url` | Webhook URL to receive event notifications | Yes | - |
 | `authentication_header` | Authentication token for webhook security | Yes | - |
+
+### Using Environment Variables for Authentication
+
+For better security, you can use environment variables to store sensitive information like authentication tokens:
+
+#### In Bash/Zsh (Linux/macOS)
+
+```bash
+# Set the authentication token as an environment variable
+export FILEWATCHER_AUTH_TOKEN="your-secret-token"
+
+# Reference it in your config.json
+sed -i 's/"authentication_header": ".*"/"authentication_header": "${FILEWATCHER_AUTH_TOKEN}"/' config.json
+
+# Run the application
+./watcher
+```
+
+#### In PowerShell (Windows)
+
+```powershell
+# Set the authentication token as an environment variable
+$env:FILEWATCHER_AUTH_TOKEN = "your-secret-token"
+
+# Reference it in your config.json
+(Get-Content config.json) -replace '"authentication_header": ".*"', '"authentication_header": "${FILEWATCHER_AUTH_TOKEN}"' | Set-Content config.json
+
+# Run the application
+./watcher.exe
+```
+
+Both the Go and Python implementations will automatically expand environment variables in the `authentication_header` field when they start.
 
 ## 🚀 Usage
 

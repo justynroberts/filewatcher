@@ -66,8 +66,11 @@ class Handler(FileSystemEventHandler):
                 "event_id": event_id
             }
             payload_json = json.dumps(payload)
+            # Expand environment variables in authentication header
+            auth_header = os.path.expandvars(self.authentication_header)
+            
             headers = {
-                'Authorization': self.authentication_header,
+                'Authorization': auth_header,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             }

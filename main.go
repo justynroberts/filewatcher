@@ -129,7 +129,9 @@ func (w *Watcher) postEvent(path string, eventID string) {
 		return
 	}
 	
-	req.Header.Set("Authorization", w.config.FileWatcher.AuthenticationHeader)
+	// Expand environment variables in authentication header
+	authHeader := os.ExpandEnv(w.config.FileWatcher.AuthenticationHeader)
+	req.Header.Set("Authorization", authHeader)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	
