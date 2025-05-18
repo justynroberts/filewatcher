@@ -97,8 +97,23 @@ This creates binaries for various platforms in the `dist` directory.
 Example with custom options:
 
 ```bash
-go run build.go -output releases -version 1.2.0
+go run tools/build.go -output releases -version 1.2.0
 ```
+
+#### Creating Release Archives
+
+To build for all platforms and create release-ready zip archives:
+
+```bash
+make release
+```
+
+This will:
+1. Build binaries for all supported platforms
+2. Create zip archives in the `dist/release` directory
+3. Include README.md, config.json, and LICENSE in each archive
+
+The generated archives can be manually uploaded to GitHub releases.
 
 ### Python Version
 

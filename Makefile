@@ -29,6 +29,12 @@ build-all:
 	@echo "Building for all platforms..."
 	@go run tools/build.go -output $(BUILD_DIR) -version $(VERSION)
 
+# Build for all platforms and create release archives
+.PHONY: release
+release:
+	@echo "Building for all platforms and creating release archives..."
+	@go run tools/build.go -output $(BUILD_DIR) -version $(VERSION) -release
+
 # Build only for current platform using the build script
 .PHONY: build-current
 build-current:
@@ -66,6 +72,7 @@ help:
 	@echo "  make run          Build and run the application"
 	@echo "  make build-all    Build for all platforms"
 	@echo "  make build-current Build only for current platform using build script"
+	@echo "  make release      Build for all platforms and create release archives"
 	@echo "  make clean        Clean build artifacts"
 	@echo "  make deps         Install dependencies"
 	@echo "  make test         Run tests"
