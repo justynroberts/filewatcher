@@ -65,7 +65,20 @@ go build -o watcher
 Or use the included build script for multi-platform builds:
 
 ```bash
-go run build.go
+go run tools/build.go
+```
+
+You can also use the Makefile for easier building:
+
+```bash
+# Build for current platform
+make build
+
+# Build for all platforms
+make build-all
+
+# Build only for current platform using build script
+make build-current
 ```
 
 This creates binaries for various platforms in the `dist` directory.
@@ -155,6 +168,12 @@ Run with default configuration:
 python3 main.py
 ```
 
+Specify a custom configuration file:
+
+```bash
+python3 main.py -c /path/to/custom-config.json
+```
+
 ## 🔄 Running as a Service
 
 ### Linux (systemd)
@@ -167,9 +186,11 @@ sudo nano /etc/systemd/system/watcher.service
 
 2. Add the following content (adjust paths as needed):
 
+#### For Go Version
+
 ```ini
 [Unit]
-Description=File Watcher Service
+Description=File Watcher Service (Go)
 After=network.target
 
 [Service]
@@ -177,6 +198,24 @@ Type=simple
 User=yourusername
 WorkingDirectory=/path/to/watcher
 ExecStart=/path/to/watcher/watcher
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### For Python Version
+
+```ini
+[Unit]
+Description=File Watcher Service (Python)
+After=network.target
+
+[Service]
+Type=simple
+User=yourusername
+WorkingDirectory=/path/to/watcher
+ExecStart=/usr/bin/python3 /path/to/watcher/main.py
 Restart=on-failure
 
 [Install]
@@ -197,11 +236,30 @@ For Windows environments, you can use NSSM (Non-Sucking Service Manager):
 1. Download NSSM from [https://nssm.cc/](https://nssm.cc/)
 2. Install the service:
 
+#### For Go Version
+
 ```
-nssm install FileWatcher
+nssm install FileWatcher-Go
+nssm set FileWatcher-Go Application C:\path\to\watcher.exe
+nssm set FileWatcher-Go AppDirectory C:\path\to\watcher
 ```
 
-3. Configure the service path, startup directory, and other parameters through the NSSM interface
+#### For Python Version
+
+```
+nssm install FileWatcher-Python
+nssm set FileWatcher-Python Application C:\path\to\python.exe
+nssm set FileWatcher-Python AppParameters C:\path\to\watcher\main.py
+nssm set FileWatcher-Python AppDirectory C:\path\to\watcher
+```
+
+3. Start the service:
+
+```
+nssm start FileWatcher-Go
+# or
+nssm start FileWatcher-Python
+```
 
 ## 🔗 Webhook Integration
 
@@ -209,16 +267,20 @@ When a matching file event occurs, FileWatcher sends a webhook POST request with
 
 ```json
 {
-  "event": "created",
-  "path": "/full/path/to/file.csv",
+  "filepath": "/full/path/to/directory",
   "filename": "file.csv",
-  "timestamp": "2023-05-18T14:30:45Z"
+  "event_id": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
 The webhook includes the authentication header specified in your configuration.
 
-For integration with automation platforms, use `$.path` to reference the file path in your automation workflows.
+Both implementations use:
+- Non-blocking webhook calls (Go uses goroutines, Python uses threads)
+- Debouncing to prevent duplicate events
+- Unique event IDs for tracking
+
+For integration with automation platforms, use `$.filepath` and `$.filename` to reference the file information in your automation workflows.
 
 ## 📏 Scalability
 
@@ -256,7 +318,7 @@ This project is licensed under the MIT License - see below for details:
 ```
 MIT License
 
-Copyright (c) 2023 Justyn Roberts
+Copyright (c) 2025 Justyn Roberts
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
