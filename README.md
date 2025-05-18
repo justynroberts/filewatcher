@@ -16,16 +16,18 @@
 
 - [Overview](#-overview)
 - [Features](#-features)
-- [Installation](#-installation)
-  - [Go Version](#go-version)
-  - [Python Version](#python-version)
-- [Configuration](#-configuration)
 - [Usage](#-usage)
+  - [Go Version](#go-version-usage)
+  - [Python Version](#python-version-usage)
+- [Configuration](#-configuration)
 - [Running as a Service](#-running-as-a-service)
   - [Linux (systemd)](#linux-systemd)
   - [Windows](#windows)
 - [Webhook Integration](#-webhook-integration)
 - [Scalability](#-scalability)
+- [Installation & Building](#-installation--building)
+  - [Go Version](#go-version-installation)
+  - [Python Version](#python-version-installation)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -46,9 +48,97 @@ The Go version offers enhanced performance and cross-platform compatibility, whi
 - **Comprehensive logging**
 - **Easy deployment** as a system service
 
-## 📥 Installation
+## 🚀 Usage
 
-### Go Version
+### Go Version Usage
+
+Run with default configuration:
+
+```bash
+./watcher
+```
+
+Specify a custom configuration file:
+
+```bash
+./watcher -config /path/to/custom-config.json
+```
+
+### Python Version Usage
+
+Run with default configuration:
+
+```bash
+python3 main.py
+```
+
+Specify a custom configuration file:
+
+```bash
+python3 main.py -c /path/to/custom-config.json
+```
+
+## ⚙️ Configuration
+
+FileWatcher uses a JSON configuration file (`config.json` by default) with the following structure:
+
+```json
+{
+    "FileWatcher": {
+        "directories": ["/path/to/watch", "/another/path"],
+        "event_types": ["created", "modified", "deleted", "moved"],
+        "file_extension_pattern": "*.csv",
+        "post_url": "https://your-webhook-url.com/endpoint",
+        "authentication_header": "${FILEWATCHER_AUTH_TOKEN}"
+    }
+}
+```
+
+### Configuration Parameters
+
+| Parameter | Description | Required | Default |
+|-----------|-------------|----------|---------|
+| `directories` | Array of directory paths to monitor (includes subdirectories) | Yes | - |
+| `event_types` | Array of event types to monitor (`created`, `modified`, `deleted`, `moved`) | Yes | - |
+| `file_extension_pattern` | File pattern to match (e.g., `*.csv`, `*.log`) | No | `*.*` |
+| `post_url` | Webhook URL to receive event notifications | Yes | - |
+| `authentication_header` | Authentication token for webhook security | Yes | - |
+
+### Using Environment Variables for Authentication
+
+For better security, you can use environment variables to store sensitive information like authentication tokens:
+
+#### In Bash/Zsh (Linux/macOS)
+
+```bash
+# Set the authentication token as an environment variable
+export FILEWATCHER_AUTH_TOKEN="your-secret-token"
+
+# Reference it in your config.json
+sed -i 's/"authentication_header": ".*"/"authentication_header": "${FILEWATCHER_AUTH_TOKEN}"/' config.json
+
+# Run the application
+./watcher
+```
+
+#### In PowerShell (Windows)
+
+```powershell
+# Set the authentication token as an environment variable
+$env:FILEWATCHER_AUTH_TOKEN = "your-secret-token"
+
+# Reference it in your config.json
+(Get-Content config.json) -replace '"authentication_header": ".*"', '"authentication_header": "${FILEWATCHER_AUTH_TOKEN}"' | Set-Content config.json
+
+# Run the application
+./watcher.exe
+```
+
+Both the Go and Python implementations will automatically expand environment variables in the `authentication_header` field when they start.
+
+## 📥 Installation & Building
+
+### Go Version Installation
 
 #### Prerequisites
 
@@ -157,7 +247,7 @@ jobs:
           done
 ```
 
-### Python Version
+### Python Version Installation
 
 #### Prerequisites
 
@@ -173,94 +263,6 @@ jobs:
 
 ```bash
 pip install -r requirements.txt
-```
-
-## ⚙️ Configuration
-
-FileWatcher uses a JSON configuration file (`config.json` by default) with the following structure:
-
-```json
-{
-    "FileWatcher": {
-        "directories": ["/path/to/watch", "/another/path"],
-        "event_types": ["created", "modified", "deleted", "moved"],
-        "file_extension_pattern": "*.csv",
-        "post_url": "https://your-webhook-url.com/endpoint",
-        "authentication_header": "YOUR-AUTH-TOKEN"
-    }
-}
-```
-
-### Configuration Parameters
-
-| Parameter | Description | Required | Default |
-|-----------|-------------|----------|---------|
-| `directories` | Array of directory paths to monitor (includes subdirectories) | Yes | - |
-| `event_types` | Array of event types to monitor (`created`, `modified`, `deleted`, `moved`) | Yes | - |
-| `file_extension_pattern` | File pattern to match (e.g., `*.csv`, `*.log`) | No | `*.*` |
-| `post_url` | Webhook URL to receive event notifications | Yes | - |
-| `authentication_header` | Authentication token for webhook security | Yes | - |
-
-### Using Environment Variables for Authentication
-
-For better security, you can use environment variables to store sensitive information like authentication tokens:
-
-#### In Bash/Zsh (Linux/macOS)
-
-```bash
-# Set the authentication token as an environment variable
-export FILEWATCHER_AUTH_TOKEN="your-secret-token"
-
-# Reference it in your config.json
-sed -i 's/"authentication_header": ".*"/"authentication_header": "${FILEWATCHER_AUTH_TOKEN}"/' config.json
-
-# Run the application
-./watcher
-```
-
-#### In PowerShell (Windows)
-
-```powershell
-# Set the authentication token as an environment variable
-$env:FILEWATCHER_AUTH_TOKEN = "your-secret-token"
-
-# Reference it in your config.json
-(Get-Content config.json) -replace '"authentication_header": ".*"', '"authentication_header": "${FILEWATCHER_AUTH_TOKEN}"' | Set-Content config.json
-
-# Run the application
-./watcher.exe
-```
-
-Both the Go and Python implementations will automatically expand environment variables in the `authentication_header` field when they start.
-
-## 🚀 Usage
-
-### Go Version
-
-Run with default configuration:
-
-```bash
-./watcher
-```
-
-Specify a custom configuration file:
-
-```bash
-./watcher -config /path/to/custom-config.json
-```
-
-### Python Version
-
-Run with default configuration:
-
-```bash
-python3 main.py
-```
-
-Specify a custom configuration file:
-
-```bash
-python3 main.py -c /path/to/custom-config.json
 ```
 
 ## 🔄 Running as a Service
