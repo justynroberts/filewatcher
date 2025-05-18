@@ -1,27 +1,28 @@
-
-
-
 # 👀 FileWatcher 👀
 
 > Watch a directory, and trigger Automation. Its not complex :) 
 
-
 👀 Watcher gives an example of how to run automation jobs as the result of a file activity.  
-It centers around the pip module watcher ([watcher](https://pypi.org/project/watcher/)) and is configurable to run an existing webhook.
+This project is available in both Python and Go versions, with the Go version supporting cross-platform builds.
 
-Webhooks are preferable as they will obey queuing and can easily be modified. The file/path is passed as an option should you need to modify it. 
+## Configuration
+
 The main configuration (`config.json`) is based on the json file format:  
 Example:  
 
+```json
+{
     "FileWatcher": {
-    "directories": ["/Users/jroberts/work/filewatcher/test", "directory2"],
-    "event_types": ["created", "modified"],
-    "file_extension_pattern": "*.csv",
-    "post_url": "https://YOURSERVERWEBHOOKURL",
-    "authentication_header": "YOURHEADER"
+        "directories": ["/Users/jroberts/work/filewatcher/test", "directory2"],
+        "event_types": ["created", "modified"],
+        "file_extension_pattern": "*.csv",
+        "post_url": "https://YOURSERVERWEBHOOKURL",
+        "authentication_header": "YOURHEADER"
     }
+}
+```
 
-File Sections:-
+File Sections:
 
 `directories` 
 Full directory path to be monitored (sub directories will automatically be monitored)
@@ -33,11 +34,11 @@ Self explanatory - one or more of the following types:
  - created 	
  - modified 	
  - deleted 	
- - moved.
+ - moved
 
 `file_extension_pattern`
 
-Extension to monitor. If ommited `*.*` is assumed
+Extension to monitor. If omitted `*.*` is assumed
 
 `post_url`  
  
@@ -48,29 +49,117 @@ Full webhook location eg
 `authentication_header`  
 A good security practice is to use the additional authentication header for each webhook. This is generated at runtime when the webhook is initially configured
 
-**🔧 Running the watcher.**
+## 🔧 Running the watcher
+
+### Go Version
+
+#### Prerequisites
+
+- Go 1.18 or higher
+
+#### Building
+
+You can build the application for your current platform:
+
+```bash
+go build -o watcher
+```
+
+Or use the included build script to build for multiple platforms:
+
+```bash
+go run build.go
+```
+
+This will create binaries for various platforms in the `dist` directory.
+
+Options for the build script:
+
+```
+-output string
+    Output directory for binaries (default "dist")
+-version string
+    Version number for the build (default "1.0.0")
+-current
+    Build only for the current platform
+```
+
+Example:
+
+```bash
+go run build.go -output releases -version 1.2.0
+```
+
+#### Running
+
+```bash
+./watcher
+```
+
+Or specify a custom config file:
+
+```bash
+./watcher -config /path/to/config.json
+```
+
+### Python Version
 
 Clone the repo to a directory.
 
 The watcher will need Python3 and the following modules with pip:
-- `watcher` - the core watcher module
+- `watchdog` - the core watcher module
 - `requests` - the library used for initiating the webhook
 
 A requirements.txt is also supplied for purists.
    
 >  pip install -r requirements.txt
 
-## Running
+#### Running
 
 `python3 main.py`  
 
-The can be installed something like [here](https://medium.com/codex/setup-a-python-script-as-a-service-through-systemctl-systemd-f0cc55a42267)
+## Running as a Service
 
-Or could work with windows using the nssm ( [https://nssm.cc/](https://nssm.cc/))
+### Linux (systemd)
+
+Create a systemd service file:
+
+```bash
+sudo nano /etc/systemd/system/watcher.service
+```
+
+Add the following content (adjust paths as needed):
+
+```
+[Unit]
+Description=File Watcher Service
+After=network.target
+
+[Service]
+Type=simple
+User=yourusername
+WorkingDirectory=/path/to/watcher
+ExecStart=/path/to/watcher/watcher
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start the service:
+
+```bash
+sudo systemctl enable watcher.service
+sudo systemctl start watcher.service
+```
+
+### Windows
+
+For Windows, you can use NSSM (Non-Sucking Service Manager): [https://nssm.cc/](https://nssm.cc/)
 
 ## Automation Webhook
 This will pass filename and filepath as a payload.
-add this as an advanced webhook option as `$.path` - this will be passed as an option across to use within your automation jobs.
+Add this as an advanced webhook option as `$.path` - this will be passed as an option across to use within your automation jobs.
 
 ## 📏 Scale:  
 
@@ -80,7 +169,8 @@ Estimated a few hundred directories, but could be split over different executabl
  - Presently 1 file = 1 webhook invocation, but could be modified to batch files.
  - Some nice features such as POST being non blocking and Log integration. 
  - Consider both the parallelism and the queuing capability of the job for this.
- - If service stops, files could be missed, and wouldnt be picked up on restart
+ - The Go version offers improved performance and cross-platform support.
+ - If service stops, files could be missed, and wouldn't be picked up on restart
    
 **⚠️ Issues?**  
 Please post to the repo, not the author.
