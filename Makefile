@@ -14,7 +14,7 @@ all: build
 .PHONY: build
 build:
 	@echo "Building for current platform..."
-	@go build -o $(BINARY_NAME) -ldflags "-X main.Version=$(VERSION)"
+	@go build -o $(BINARY_NAME) -ldflags "-X main.Version=$(VERSION)" main.go
 	@echo "Build complete: $(BINARY_NAME)"
 
 # Run the application
@@ -27,13 +27,13 @@ run: build
 .PHONY: build-all
 build-all:
 	@echo "Building for all platforms..."
-	@go run build.go -output $(BUILD_DIR) -version $(VERSION)
+	@go run tools/build.go -output $(BUILD_DIR) -version $(VERSION)
 
 # Build only for current platform using the build script
 .PHONY: build-current
 build-current:
 	@echo "Building for current platform using build script..."
-	@go run build.go -output $(BUILD_DIR) -version $(VERSION) -current
+	@go run tools/build.go -output $(BUILD_DIR) -version $(VERSION) -current
 
 # Clean build artifacts
 .PHONY: clean
