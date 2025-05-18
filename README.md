@@ -1,55 +1,52 @@
-# 👀 FileWatcher 👀
+<div align="center">
+  
+# 👀 FileWatcher
 
-> Watch a directory, and trigger Automation. Its not complex :) 
+**Elegant file system monitoring with automated webhook triggers**
 
-👀 Watcher gives an example of how to run automation jobs as the result of a file activity.  
-This project is available in both Python and Go versions, with the Go version supporting cross-platform builds.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Go Version](https://img.shields.io/badge/Go-1.18%2B-00ADD8.svg)](https://golang.org/)
+[![Python Version](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/)
 
-## Configuration
+*Watch directories, detect changes, trigger automation - Simple yet powerful*
 
-The main configuration (`config.json`) is based on the json file format:  
-Example:  
+</div>
 
-```json
-{
-    "FileWatcher": {
-        "directories": ["/Users/jroberts/work/filewatcher/test", "directory2"],
-        "event_types": ["created", "modified"],
-        "file_extension_pattern": "*.csv",
-        "post_url": "https://YOURSERVERWEBHOOKURL",
-        "authentication_header": "YOURHEADER"
-    }
-}
-```
+## 📋 Table of Contents
 
-File Sections:
+- [Overview](#-overview)
+- [Features](#-features)
+- [Installation](#-installation)
+  - [Go Version](#go-version)
+  - [Python Version](#python-version)
+- [Configuration](#-configuration)
+- [Usage](#-usage)
+- [Running as a Service](#-running-as-a-service)
+  - [Linux (systemd)](#linux-systemd)
+  - [Windows](#windows)
+- [Webhook Integration](#-webhook-integration)
+- [Scalability](#-scalability)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-`directories` 
-Full directory path to be monitored (sub directories will automatically be monitored)
+## 🔍 Overview
 
+FileWatcher is a lightweight, cross-platform utility designed to monitor file system events and trigger webhook-based automation workflows. Available in both Go and Python implementations, it provides a simple yet powerful solution for initiating automated processes in response to file creation, modification, deletion, or movement.
 
-`event_types`
-Self explanatory - one or more of the following types:  
+The Go version offers enhanced performance and cross-platform compatibility, while the Python version provides excellent flexibility and ease of use.
 
- - created 	
- - modified 	
- - deleted 	
- - moved
+## ✨ Features
 
-`file_extension_pattern`
+- **Real-time monitoring** of file system events
+- **Configurable event filtering** (created, modified, deleted, moved)
+- **Pattern matching** for specific file extensions
+- **Webhook integration** with custom authentication
+- **Cross-platform support** via Go implementation
+- **Non-blocking webhook calls** for improved performance
+- **Comprehensive logging**
+- **Easy deployment** as a system service
 
-Extension to monitor. If omitted `*.*` is assumed
-
-`post_url`  
- 
-Full webhook location eg 
-
-> https://myhost.domain.com/api/webhook
-
-`authentication_header`  
-A good security practice is to use the additional authentication header for each webhook. This is generated at runtime when the webhook is initially configured
-
-## 🔧 Running the watcher
+## 📥 Installation
 
 ### Go Version
 
@@ -57,23 +54,23 @@ A good security practice is to use the additional authentication header for each
 
 - Go 1.18 or higher
 
-#### Building
+#### Building from Source
 
-You can build the application for your current platform:
+Build for your current platform:
 
 ```bash
 go build -o watcher
 ```
 
-Or use the included build script to build for multiple platforms:
+Or use the included build script for multi-platform builds:
 
 ```bash
 go run build.go
 ```
 
-This will create binaries for various platforms in the `dist` directory.
+This creates binaries for various platforms in the `dist` directory.
 
-Options for the build script:
+#### Build Script Options
 
 ```
 -output string
@@ -84,53 +81,93 @@ Options for the build script:
     Build only for the current platform
 ```
 
-Example:
+Example with custom options:
 
 ```bash
 go run build.go -output releases -version 1.2.0
 ```
 
-#### Running
+### Python Version
+
+#### Prerequisites
+
+- Python 3.6 or higher
+- Required packages:
+  - `watchdog`: Core file system monitoring
+  - `requests`: HTTP client for webhook integration
+
+#### Installation Steps
+
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+## ⚙️ Configuration
+
+FileWatcher uses a JSON configuration file (`config.json` by default) with the following structure:
+
+```json
+{
+    "FileWatcher": {
+        "directories": ["/path/to/watch", "/another/path"],
+        "event_types": ["created", "modified", "deleted", "moved"],
+        "file_extension_pattern": "*.csv",
+        "post_url": "https://your-webhook-url.com/endpoint",
+        "authentication_header": "YOUR-AUTH-TOKEN"
+    }
+}
+```
+
+### Configuration Parameters
+
+| Parameter | Description | Required | Default |
+|-----------|-------------|----------|---------|
+| `directories` | Array of directory paths to monitor (includes subdirectories) | Yes | - |
+| `event_types` | Array of event types to monitor (`created`, `modified`, `deleted`, `moved`) | Yes | - |
+| `file_extension_pattern` | File pattern to match (e.g., `*.csv`, `*.log`) | No | `*.*` |
+| `post_url` | Webhook URL to receive event notifications | Yes | - |
+| `authentication_header` | Authentication token for webhook security | Yes | - |
+
+## 🚀 Usage
+
+### Go Version
+
+Run with default configuration:
 
 ```bash
 ./watcher
 ```
 
-Or specify a custom config file:
+Specify a custom configuration file:
 
 ```bash
-./watcher -config /path/to/config.json
+./watcher -config /path/to/custom-config.json
 ```
 
 ### Python Version
 
-Clone the repo to a directory.
+Run with default configuration:
 
-The watcher will need Python3 and the following modules with pip:
-- `watchdog` - the core watcher module
-- `requests` - the library used for initiating the webhook
+```bash
+python3 main.py
+```
 
-A requirements.txt is also supplied for purists.
-   
->  pip install -r requirements.txt
-
-#### Running
-
-`python3 main.py`  
-
-## Running as a Service
+## 🔄 Running as a Service
 
 ### Linux (systemd)
 
-Create a systemd service file:
+1. Create a systemd service file:
 
 ```bash
 sudo nano /etc/systemd/system/watcher.service
 ```
 
-Add the following content (adjust paths as needed):
+2. Add the following content (adjust paths as needed):
 
-```
+```ini
 [Unit]
 Description=File Watcher Service
 After=network.target
@@ -146,7 +183,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 ```
 
-Enable and start the service:
+3. Enable and start the service:
 
 ```bash
 sudo systemctl enable watcher.service
@@ -155,45 +192,86 @@ sudo systemctl start watcher.service
 
 ### Windows
 
-For Windows, you can use NSSM (Non-Sucking Service Manager): [https://nssm.cc/](https://nssm.cc/)
+For Windows environments, you can use NSSM (Non-Sucking Service Manager):
 
-## Automation Webhook
-This will pass filename and filepath as a payload.
-Add this as an advanced webhook option as `$.path` - this will be passed as an option across to use within your automation jobs.
+1. Download NSSM from [https://nssm.cc/](https://nssm.cc/)
+2. Install the service:
 
-## 📏 Scale:  
+```
+nssm install FileWatcher
+```
 
-Estimated a few hundred directories, but could be split over different executables/runners to scale to more.
+3. Configure the service path, startup directory, and other parameters through the NSSM interface
 
-**📝 Notes:**  
- - Presently 1 file = 1 webhook invocation, but could be modified to batch files.
- - Some nice features such as POST being non blocking and Log integration. 
- - Consider both the parallelism and the queuing capability of the job for this.
- - The Go version offers improved performance and cross-platform support.
- - If service stops, files could be missed, and wouldn't be picked up on restart
-   
-**⚠️ Issues?**  
-Please post to the repo, not the author.
+## 🔗 Webhook Integration
 
-**📜 License**  
+When a matching file event occurs, FileWatcher sends a webhook POST request with the following payload:
 
-MIT License  
+```json
+{
+  "event": "created",
+  "path": "/full/path/to/file.csv",
+  "filename": "file.csv",
+  "timestamp": "2023-05-18T14:30:45Z"
+}
+```
 
-> Permission is hereby granted, free of charge, to any person obtaining
-> a copy of this software and associated documentation files (the
-> "Software"), to deal in the Software without restriction, including
-> without limitation the rights to use, copy, modify, merge, publish,
-> distribute, sublicense, and/or sell copies of the Software, and to
-> permit persons to whom the Software is furnished to do so, subject to
-> the following conditions:
-> 
->  The above copyright notice and this permission notice shall be
-> included in all copies or substantial portions of the Software.
-> 
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-> IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-> CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-> TORT OR OTHERWISE, ARISING FROM,OUT OF OR IN CONNECTION WITH THE
-> SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The webhook includes the authentication header specified in your configuration.
+
+For integration with automation platforms, use `$.path` to reference the file path in your automation workflows.
+
+## 📏 Scalability
+
+FileWatcher is designed to efficiently monitor several hundred directories on a single instance. For larger deployments:
+
+- Deploy multiple instances with different directory subsets
+- Consider batching file events for high-volume scenarios
+- Ensure your webhook endpoint can handle the expected request volume
+
+**Performance Considerations:**
+- The Go version offers significantly better performance for high-volume monitoring
+- Webhook calls are non-blocking to prevent monitoring interruptions
+- Consider both the parallelism and queuing capabilities of your automation system
+
+**Limitations:**
+- Events that occur while the service is stopped will not be detected upon restart
+- Very high file change rates may require custom throttling or batching
+
+## 👥 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+Please report issues via the GitHub issue tracker.
+
+## 📜 License
+
+This project is licensed under the MIT License - see below for details:
+
+```
+MIT License
+
+Copyright (c) 2023 Justyn Roberts
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
