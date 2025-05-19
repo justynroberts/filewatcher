@@ -8,7 +8,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.18%2B-00ADD8.svg)](https://golang.org/)
 [![Python Version](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/)
 
-*Watch directories, detect changes, trigger automation - Simple yet powerful*
+*Watch directories, detect changes, trigger automation*
 
 </div>
 
@@ -371,7 +371,7 @@ Both implementations use:
 - Debouncing to prevent duplicate events
 - Unique event IDs for tracking
 
-For integration with automation platforms, use `$.filepath` and `$.filename` to reference the file information in your automation workflows.
+For integration with Rundeck, use the jsonpath `$.filepath` and `$.filename` in an advanced webhookto reference the file information in your automation workflows.
 
 ## 📏 Scalability
 
