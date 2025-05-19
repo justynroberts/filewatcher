@@ -2,7 +2,7 @@
   
 # 👀 FileWatcher
 
-**Elegant file system monitoring with automated webhook triggers**
+**File system monitoring with automated webhook triggers for Rundeck/Runbook Automation**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.18%2B-00ADD8.svg)](https://golang.org/)
