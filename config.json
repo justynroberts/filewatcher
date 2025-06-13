@@ -3,6 +3,8 @@
         "directories": ["/Users/jroberts/work/filewatcher/test", "directory2"],
         "event_types": ["created", "modified"],
         "file_extension_pattern": "*.csv",
+        "file_stability_check_enabled": true,
+        "file_stability_wait_seconds": 5,
 
         "post_url": "https://YOURWEBHOOKURL",
         "authentication_header": "YOUR-HEADER"

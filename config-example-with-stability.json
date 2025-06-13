@@ -1,0 +1,11 @@
+{
+    "FileWatcher": {
+        "directories": ["/path/to/incoming/files", "/another/watch/directory"],
+        "event_types": ["created", "modified"],
+        "file_extension_pattern": "*.csv",
+        "file_stability_check_enabled": true,
+        "file_stability_wait_seconds": 10,
+        "post_url": "https://your-automation-endpoint.com/webhook",
+        "authentication_header": "${FILEWATCHER_AUTH_TOKEN}"
+    }
+}

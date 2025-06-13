@@ -20,11 +20,13 @@ import (
 // Config represents the application configuration
 type Config struct {
 	FileWatcher struct {
-		Directories        []string `json:"directories"`
-		EventTypes         []string `json:"event_types"`
-		FileExtensionPattern string `json:"file_extension_pattern"`
-		PostURL           string   `json:"post_url"`
-		AuthenticationHeader string `json:"authentication_header"`
+		Directories              []string `json:"directories"`
+		EventTypes               []string `json:"event_types"`
+		FileExtensionPattern     string   `json:"file_extension_pattern"`
+		FileStabilityCheckEnabled bool    `json:"file_stability_check_enabled"`
+		FileStabilityWaitSeconds  int     `json:"file_stability_wait_seconds"`
+		PostURL                  string   `json:"post_url"`
+		AuthenticationHeader     string   `json:"authentication_header"`
 	} `json:"FileWatcher"`
 }
 
@@ -101,12 +103,66 @@ func (w *Watcher) shouldProcessEvent(path string) bool {
 	return false
 }
 
+// checkFileStability checks if file size remains stable for the configured duration
+func (w *Watcher) checkFileStability(path string, eventID string) bool {
+	if !w.config.FileWatcher.FileStabilityCheckEnabled {
+		return true
+	}
+	
+	waitSeconds := w.config.FileWatcher.FileStabilityWaitSeconds
+	if waitSeconds <= 0 {
+		waitSeconds = 5 // Default to 5 seconds
+	}
+	
+	stableCount := 0
+	var lastSize int64 = -1
+	
+	for stableCount < waitSeconds {
+		fileInfo, err := os.Stat(path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				log.Printf("File %s no longer exists during stability check for event %s", path, eventID)
+			} else {
+				log.Printf("Error getting file info during stability check for event %s: %v", eventID, err)
+			}
+			return false
+		}
+		
+		currentSize := fileInfo.Size()
+		
+		if lastSize == -1 {
+			lastSize = currentSize
+		} else if currentSize == lastSize {
+			stableCount++
+		} else {
+			// File size changed, reset counter
+			log.Printf("File size changed for %s (event %s): %d -> %d, resetting stability timer", path, eventID, lastSize, currentSize)
+			stableCount = 0
+			lastSize = currentSize
+		}
+		
+		time.Sleep(1 * time.Second) // Check every second
+	}
+	
+	log.Printf("File %s is stable for %d seconds (event %s)", path, waitSeconds, eventID)
+	return true
+}
+
 // postEvent sends the event information to the configured webhook
 func (w *Watcher) postEvent(path string, eventID string) {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		log.Printf("🚩 Error getting absolute path: %v", err)
 		return
+	}
+	
+	// Perform file stability check if enabled
+	if w.config.FileWatcher.FileStabilityCheckEnabled {
+		log.Printf("🕐 Starting file stability check for event %s: %s", eventID, absPath)
+		if !w.checkFileStability(absPath, eventID) {
+			log.Printf("⚠️ File stability check failed for event %s: %s", eventID, absPath)
+			return
+		}
 	}
 	
 	dir, file := filepath.Split(absPath)
@@ -309,6 +365,16 @@ func main() {
 		pattern = "*.*"
 	}
 	log.Printf("🟢 File Extension Pattern: %s", pattern)
+	if config.FileWatcher.FileStabilityCheckEnabled {
+		log.Printf("🟢 File Stability Check: Enabled")
+		waitSeconds := config.FileWatcher.FileStabilityWaitSeconds
+		if waitSeconds <= 0 {
+			waitSeconds = 5
+		}
+		log.Printf("🟢 File Stability Wait Time: %d seconds", waitSeconds)
+	} else {
+		log.Printf("🟢 File Stability Check: Disabled")
+	}
 	log.Printf("🟢 Runbook Automation URL: %s", config.FileWatcher.PostURL)
 	log.Printf("🟢 Authentication Header: REDACTED (see config.json)")
 	

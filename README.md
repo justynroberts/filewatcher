@@ -42,6 +42,7 @@ The Go version offers enhanced performance and cross-platform compatibility, whi
 - **Real-time monitoring** of file system events
 - **Configurable event filtering** (created, modified, deleted, moved)
 - **Pattern matching** for specific file extensions
+- **File stability checking** to ensure files are completely copied before triggering webhooks
 - **Webhook integration** with custom authentication
 - **Cross-platform support** via Go implementation
 - **Non-blocking webhook calls** for improved performance
@@ -88,6 +89,8 @@ FileWatcher uses a JSON configuration file (`config.json` by default) with the f
         "directories": ["/path/to/watch", "/another/path"],
         "event_types": ["created", "modified", "deleted", "moved"],
         "file_extension_pattern": "*.csv",
+        "file_stability_check_enabled": true,
+        "file_stability_wait_seconds": 5,
         "post_url": "https://your-webhook-url.com/endpoint",
         "authentication_header": "${FILEWATCHER_AUTH_TOKEN}"
     }
@@ -101,6 +104,8 @@ FileWatcher uses a JSON configuration file (`config.json` by default) with the f
 | `directories` | Array of directory paths to monitor (includes subdirectories) | Yes | - |
 | `event_types` | Array of event types to monitor (`created`, `modified`, `deleted`, `moved`) | Yes | - |
 | `file_extension_pattern` | File pattern to match (e.g., `*.csv`, `*.log`) | No | `*.*` |
+| `file_stability_check_enabled` | Enable file size stability checking before triggering webhooks | No | `false` |
+| `file_stability_wait_seconds` | Number of seconds to wait for file size to remain stable | No | `5` |
 | `post_url` | Webhook URL to receive event notifications | Yes | - |
 | `authentication_header` | Authentication token for webhook security | Yes | - |
 
@@ -135,6 +140,51 @@ $env:FILEWATCHER_AUTH_TOKEN = "your-secret-token"
 ```
 
 Both the Go and Python implementations will automatically expand environment variables in the `authentication_header` field when they start.
+
+### File Stability Check
+
+The file stability check feature is designed to handle scenarios where files are being copied or transferred to the monitored directories. This is particularly useful when dealing with large files or network transfers where you want to ensure the file is completely written before triggering automation workflows.
+
+When enabled, the watcher will:
+
+1. **Monitor file size changes**: After detecting a file event, it continuously checks the file size every second
+2. **Wait for stability**: Only triggers the webhook after the file size remains unchanged for the configured duration
+3. **Reset on changes**: If the file size changes during the wait period, the timer resets and monitoring continues
+4. **Handle edge cases**: Gracefully handles scenarios where files are deleted or become inaccessible during monitoring
+
+#### Configuration Example
+
+```json
+{
+    "FileWatcher": {
+        "directories": ["/path/to/incoming/files"],
+        "event_types": ["created", "modified"],
+        "file_extension_pattern": "*.csv",
+        "file_stability_check_enabled": true,
+        "file_stability_wait_seconds": 10,
+        "post_url": "https://your-automation-endpoint.com/webhook",
+        "authentication_header": "${FILEWATCHER_AUTH_TOKEN}"
+    }
+}
+```
+
+#### Use Cases
+
+- **Large file transfers**: Wait for multi-gigabyte files to finish copying
+- **Network file shares**: Ensure files transferred over slow networks are complete
+- **Batch processing**: Prevent processing of partially written files
+- **Database imports**: Ensure CSV/data files are fully written before import triggers
+
+#### Logging
+
+When file stability checking is enabled, you'll see additional log messages:
+
+```
+🕐 Starting file stability check for event abc123: /path/to/file.csv
+File size changed for /path/to/file.csv (event abc123): 1024 -> 2048, resetting stability timer
+File /path/to/file.csv is stable for 5 seconds (event abc123)
+↔️ Sending HTTP POST request for event abc123: /path/to/file.csv
+```
 
 ## 📥 Installation & Building
 
@@ -369,6 +419,7 @@ The webhook includes the authentication header specified in your configuration.
 Both implementations use:
 - Non-blocking webhook calls (Go uses goroutines, Python uses threads)
 - Debouncing to prevent duplicate events
+- Optional file stability checking to ensure files are completely written
 - Unique event IDs for tracking
 
 For integration with Rundeck, use the jsonpath `$.filepath` and `$.filename` in an advanced webhookto reference the file information in your automation workflows.
